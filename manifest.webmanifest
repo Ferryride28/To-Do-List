@@ -1,0 +1,23 @@
+{
+  "name": "Todo ✨ Voice + Stickers",
+  "short_name": "Todo Voice",
+  "description": "A Todo list app with voice recognition, stickers and custom themes.",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "start_url": "todo-voice-stickers.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#7c5cff"
+}
