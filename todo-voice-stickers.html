@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Todo ✨ Voice + Stickers</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <!-- Updated font set including Urdu font for proper rendering -->
+  <link id="dynamicFonts" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Poppins:wght@400;600;700&family=Nunito:wght@400;600;800&family=Quicksand:wght@400;600;700&family=Baloo+2:wght@500;700&family=Montserrat:wght@400;700&family=Merriweather:wght@400;700&family=Noto+Nastaliq+Urdu&display=swap" rel="stylesheet">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <meta name="theme-color" content="#7c5cff" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <style>
+    :root{--bg:#0f1226;--card:rgba(255,255,255,0.12);--muted:rgba(255,255,255,0.7);--text:#fff;--accent:#7c5cff;--accent-2:#26e3a0;--shadow:0 10px 30px rgba(0,0,0,.35);--radius:18px;--font:'Inter',system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+    *{box-sizing:border-box}body{margin:0;color:var(--text);font-family:var(--font);background:radial-gradient(1200px 800px at 10% 10%,#1a1f4b 0%,#0f1226 45%) no-repeat,linear-gradient(to bottom right,#10142d,#0b0e21 60%) fixed}
+    .container{max-width:1100px;margin:0 auto;padding:20px}.brand{display:flex;align-items:center;gap:12px}.logo{width:46px;height:46px;border-radius:12px;background:conic-gradient(from 180deg at 50% 50%,var(--accent),#ff8dd8,var(--accent-2),var(--accent));box-shadow:var(--shadow)}
+    header{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:16px}.controls{display:flex;gap:10px;flex-wrap:wrap}
+    .chip,select,input[type=text],input[type=date],button{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);color:var(--text);padding:10px 12px;border-radius:12px;outline:none;backdrop-filter:blur(8px)}
+    .btn{cursor:pointer;display:inline-flex;align-items:center;gap:8px;border:none;padding:10px 14px;border-radius:12px;background:var(--accent);color:#111;font-weight:700}.btn.secondary{background:rgba(255,255,255,0.1);color:var(--text);border:1px solid rgba(255,255,255,0.2)}.btn.warn{background:#ffb020;color:#111}
+    .card{background:var(--card);border:1px solid rgba(255,255,255,0.15);border-radius:18px;box-shadow:var(--shadow)}.add-card{padding:16px}.lists{display:grid;grid-template-columns:1fr;gap:12px;margin-top:12px}
+    .task{position:relative;display:grid;grid-template-columns:28px 1fr auto;gap:10px;align-items:center;padding:14px;border-radius:14px;border:1px solid rgba(255,255,255,0.12);background:linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.03))}.task .drag{cursor:grab;opacity:.8}.task.completed{opacity:.6}.task.completed .title{text-decoration:line-through}
+    .badge{padding:2px 8px;border-radius:999px;font-size:12px;border:1px solid rgba(255,255,255,0.15)}.sticker{font-size:20px;line-height:1}.filters{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:14px 0}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="brand"><div class="logo" aria-hidden="true"></div><h1>Todo ✨ Voice + Stickers</h1></div>
+      <div class="controls">
+        <label class="chip" title="Accent"><span class="swatch" style="width:14px;height:14px;border-radius:999px;background:var(--accent)"></span>Accent
+          <select id="accentSelect"><option value="en-US">English (US)</option><option value="en-GB">English (UK)</option><option value="ur-PK">Urdu (Pakistan)</option><option value="ar-SA">Arabic (Saudi Arabia)</option></select>
+        </label>
+        <label class="chip" title="Voice">Voice <select id="voiceSelect"></select></label>
+        <label class="chip" title="Accent color"><input id="accentColor" type="color" value="#7c5cff" /></label>
+        <label class="chip" title="Font"><select id="fontSelect"><option>Inter</option><option>Poppins</option><option>Nunito</option><option>Quicksand</option><option>Montserrat</option><option>Baloo 2</option><option>Merriweather</option><option>Noto Nastaliq Urdu</option><option>system-ui</option></select></label>
+        <button id="speakAll" class="btn secondary">🔊 Read</button>
+        <button id="exportBtn" class="btn secondary">⤴️ Export</button>
+        <label for="importFile" class="btn secondary" style="cursor:pointer">⤵️ Import</label><input id="importFile" type="file" accept="application/json" style="display:none" />
+      </div>
+    </header>
+
+    <div class="banner card"><div class="brand" style="justify-content:space-between"><div><strong>Banner:</strong> <input id="bannerText" type="text" placeholder="Study Sprint • Bismillah • Errands" /></div><div><button id="bannerEmoji" class="btn secondary">🎉 Add flair</button><button id="clearBanner" class="btn secondary">✖</button></div></div></div>
+
+    <section class="add-card card">
+      <form id="addForm" class="add-form" autocomplete="off" style="display:grid;grid-template-columns:1fr auto auto auto auto;gap:10px;grid-template-areas:'text text date priority category' 'stickers mic add add add';">
+        <input class="text" id="taskText" type="text" placeholder="Add a task…" required style="grid-area:text" />
+        <input class="date" id="taskDue" type="date" style="grid-area:date" />
+        <select class="priority" id="taskPriority" style="grid-area:priority"><option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option></select>
+        <input class="category" id="taskCategory" type="text" placeholder="Category" style="grid-area:category" />
+        <div class="stickers" style="grid-area:stickers;display:flex;gap:6px;flex-wrap:wrap">
+          <button type="button" class="stickerBtn">🌟</button><button type="button" class="stickerBtn">🔥</button><button type="button" class="stickerBtn">🎯</button><button type="button" class="stickerBtn">💡</button><button type="button" class="stickerBtn">✅</button><button type="button" class="stickerBtn">📚</button><button type="button" class="stickerBtn">🕒</button><button type="button" class="stickerBtn">🚀</button><button type="button" class="stickerBtn">🎉</button><button type="button" class="stickerBtn">🦋</button><button type="button" class="stickerBtn">❤️</button>
+        </div>
+        <div class="mic" style="grid-area:mic"><button id="micBtn" type="button" class="btn secondary">🎙️ Speak</button></div>
+        <button class="btn addbtn" type="submit" style="grid-area:add">➕ Add Task</button>
+      </form>
+      <div id="interimText" style="margin-top:8px;color:var(--muted);min-height:18px"></div>
+    </section>
+
+    <div class="filters"><input id="searchInput" type="search" placeholder="Search…"/><select id="statusFilter"><option value="all">All</option><option value="open">Open</option><option value="completed">Completed</option></select><select id="prioFilter"><option value="all">Any priority</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option></select><button id="clearDone" class="btn secondary">🧹 Clear completed</button><button id="focusMode" class="btn secondary">🎯 Focus Mode</button></div>
+
+    <section id="list" class="lists" aria-live="polite"></section>
+    <div class="footer">Tip: drag the ▦ handle to reorder. Your data is saved locally.</div>
+  </div>
+
+<script>
+(function(){
+  const $=s=>document.querySelector(s), $$=s=>Array.from(document.querySelectorAll(s));
+  const storeKey='todo.voice.stickers.v1';
+  const state={tasks:[],banner:'',font:'Inter',accentColor:'#7c5cff'};
+  function load(){try{const raw=localStorage.getItem(storeKey); if(raw){Object.assign(state, JSON.parse(raw));}}catch(e){}}
+  function save(){localStorage.setItem(storeKey, JSON.stringify(state));}
+  function escapeHtml(s){return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));}
+  function uid(){return Math.random().toString(36).slice(2,9);}  
+  function render(){
+    document.documentElement.style.setProperty('--accent', state.accentColor);
+    document.body.style.fontFamily=state.font==='system-ui'?'system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif':`'${state.font}', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif`;
+    $('#fontSelect').value=state.font; $('#accentColor').value=state.accentColor;
+    const list=$('#list'); list.innerHTML='';
+    let tasks=state.tasks.slice();
+    const q=$('#searchInput').value.trim().toLowerCase(), st=$('#statusFilter').value, pf=$('#prioFilter').value;
+    if(q){tasks=tasks.filter(t=>t.text.toLowerCase().includes(q)||(t.category||'').toLowerCase().includes(q));}
+    if(st!=='all'){tasks=tasks.filter(t=>st==='completed'?t.completed:!t.completed);}    
+    if(pf!=='all'){tasks=tasks.filter(t=>t.priority===pf);}    
+    tasks.sort((a,b)=>{if(a.completed!==b.completed)return a.completed?1:-1;const ad=a.due||'',bd=b.due||'';if(ad!==bd)return ad<bd?-1:1;const pr={high:0,medium:1,low:2};if(a.priority!==b.priority)return pr[a.priority]-pr[b.priority];return (a.order||0)-(b.order||0);});
+    for(const t of tasks){
+      const el=document.createElement('div'); el.className='task card'; el.draggable=true; el.dataset.id=t.id;
+      el.innerHTML=`<div class="colorbar" style="background:${t.color||state.accentColor}"></div>
+      <div class="drag" title="Drag to reorder" aria-hidden="true">▦</div>
+      <div><div class="title">${escapeHtml(t.text)}</div>
+      <div class="meta">${t.due?`<span class="badge">📅 ${t.due}</span>`:''}<span class="badge">${t.priority}</span>${t.category?` <span class="badge">#${escapeHtml(t.category)}</span>`:''}${t.stickers.map(s=>` <span class="sticker">${s}</span>`).join('')}</div></div>
+      <div class="actions">
+      <label class="chip" data-act="toggle"><input type="checkbox" ${t.completed?'checked':''} data-act="toggle"> Done</label>
+      <button class="btn secondary" data-act="speak">🔊</button><button class="btn secondary" data-act="edit">✏️</button><button class="btn secondary" data-act="color">🎨</button><button class="btn warn" data-act="delete">🗑️</button></div>`;
+      if(t.completed) el.classList.add('completed');
+      el.addEventListener('dragstart',e=>{e.dataTransfer.setData('text/plain',t.id); e.dataTransfer.effectAllowed='move';});
+      el.addEventListener('dragover',e=>{e.preventDefault(); el.style.outline='2px dashed '+(t.color||state.accentColor);});
+      el.addEventListener('dragleave',()=>{el.style.outline='none';});
+      el.addEventListener('drop',e=>{e.preventDefault(); el.style.outline='none'; const id=e.dataTransfer.getData('text/plain'); if(id&&id!==t.id){ const a=state.tasks.find(x=>x.id===id), b=t; a.order=(b.order||0)-0.5+Math.random()*0.001; state.tasks.sort((x,y)=>(x.order||0)-(y.order||0)); state.tasks.forEach((k,i)=>k.order=i); save(); render(); }});
+      el.addEventListener('click',e=>{const target=e.target.closest('[data-act]'); if(!target||!el.contains(target))return; const act=target.getAttribute('data-act'); if(act==='toggle'){t.completed=!t.completed; save(); render();} else if(act==='delete'){ if(confirm('Delete this task?')){state.tasks=state.tasks.filter(x=>x.id!==t.id); save(); render();} } else if(act==='edit'){ const s=prompt('Edit task text:', t.text); if(s!==null){ /* Replace invalid 'or' with proper JS fallback */ t.text=(s && s.trim())||t.text; save(); render(); } } else if(act==='color'){ const input=document.createElement('input'); input.type='color'; input.value=t.color||state.accentColor; input.style.position='fixed'; input.style.left='-9999px'; document.body.appendChild(input); input.addEventListener('change',()=>{t.color=input.value; save(); render(); document.body.removeChild(input);}); input.click(); } else if(act==='speak'){ speakText(t.text);} });
+      list.appendChild(el);
+    }
+  }
+  let pendingStickers=[];
+  function bindAddForm(){ $$('#addForm .stickerBtn').forEach(btn=>btn.addEventListener('click',()=>{pendingStickers.push(btn.textContent.trim()); $('#interimText').textContent='Stickers: '+pendingStickers.join(' ');})); $('#addForm').addEventListener('submit',e=>{e.preventDefault(); const text=$('#taskText').value.trim(); if(!text) return; const task={id:uid(),text, due:$('#taskDue').value||'', priority:$('#taskPriority').value, category:$('#taskCategory').value.trim(), stickers:pendingStickers.slice(), completed:false, color:state.accentColor, order:(state.tasks.length? Math.max(...state.tasks.map(t=>t.order||0))+1:0)}; state.tasks.push(task); pendingStickers=[]; e.target.reset(); $('#interimText').textContent=''; save(); render();}); }
+  function bindFilters(){ ['searchInput','statusFilter','prioFilter'].forEach(id=>$("#"+id).addEventListener('input', render)); $('#clearDone').addEventListener('click',()=>{state.tasks=state.tasks.filter(t=>!t.completed); save(); render();}); $('#focusMode').addEventListener('click',e=>{const on=e.currentTarget.dataset.on==='1'?'0':'1'; e.currentTarget.dataset.on=on; e.currentTarget.classList.toggle('active', on==='1'); render();}); }
+  function bindBanner(){ $('#bannerText').addEventListener('input',e=>{state.banner=e.target.value; save();}); $('#bannerEmoji').addEventListener('click',()=>{const c=['🎉','🚀','🌟','💪','📚','🕊️','🧠','❤️','🕋','🕌']; const em=c[Math.floor(Math.random()*c.length)]; state.banner=(state.banner||'')+' '+em; save(); render();}); $('#clearBanner').addEventListener('click',()=>{state.banner=''; save(); render();}); }
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition; let recog=null,listening=false,interimTimeout=null;
+  function bindSpeech(){ const mic=$('#micBtn'); const insecure=!isSecureContext && !/^localhost$|^127\.0\.0\.1$/.test(location.hostname); if(insecure){mic.disabled=true; mic.title='Microphone requires HTTPS or localhost.'; return;} if(!SR){mic.disabled=true; mic.title='Speech recognition not supported in this browser'; return;} recog=new SR(); recog.interimResults=true; recog.continuous=false; recog.maxAlternatives=1; function start(){if(listening) return; listening=true; recog.lang=$('#accentSelect').value||'en-US'; $('#interimText').textContent='Listening…'; try{recog.start();}catch(e){listening=false;}} function stop(){if(!listening) return; try{recog.stop();}catch(_){}} mic.addEventListener('mousedown', start); mic.addEventListener('touchstart', e=>{e.preventDefault(); start();},{passive:false}); mic.addEventListener('mouseup', stop); mic.addEventListener('mouseleave', stop); mic.addEventListener('touchend', stop); mic.addEventListener('click', ()=>{if(!listening) start(); else stop();}); recog.onresult=ev=>{clearTimeout(interimTimeout); let final='',interim=''; for(let i=ev.resultIndex;i<ev.results.length;i++){const r=ev.results[i]; if(r.isFinal) final+=r[0].transcript; else interim+=r[0].transcript;} if(interim) $('#interimText').textContent='… '+interim; if(final){ const box=$('#taskText'); box.value=(box.value+' '+final).trim(); $('#interimText').textContent='Heard: "'+final.trim()+'"'; interimTimeout=setTimeout(()=>$('#interimText').textContent='',1600);} }; recog.onerror=e=>{listening=false; const err=e&&e.error||'unknown'; if(err==='not-allowed'||err==='permission-denied'){ $('#interimText').textContent='Mic blocked. Allow mic in site settings.'; } else if(err==='no-speech'){ $('#interimText').textContent='No speech heard. Try again.'; } else { $('#interimText').textContent='Mic error: '+err; } }; recog.onend=()=>{listening=false;}; }
+  const synth=window.speechSynthesis; function populateVoices(){ const sel=$('#voiceSelect'); sel.innerHTML=''; const voices=synth.getVoices(); voices.forEach((v,i)=>{const o=document.createElement('option'); o.value=i; o.textContent=`${v.name} — ${v.lang}${v.default?' (default)':''}`; sel.appendChild(o);}); } function speakText(text){ if(!text||!window.speechSynthesis) return; const u=new SpeechSynthesisUtterance(text); const i=parseInt($('#voiceSelect').value,10); const v=synth.getVoices(); if(v[i]) u.voice=v[i]; u.rate=1; u.pitch=1; u.lang=u.voice?u.voice.lang:($('#accentSelect').value||'en-US'); synth.speak(u);} function bindTTS(){ populateVoices(); if('onvoiceschanged' in speechSynthesis){ speechSynthesis.onvoiceschanged=populateVoices; } $('#speakAll').addEventListener('click', ()=>{ const open=state.tasks.filter(t=>!t.completed); if(!open.length) return; const text=open.map((t,i)=> `${i+1}. ${t.text}${t.due? ' (due '+t.due+')':''}.`).join(' '); speakText(text); }); }
+  // initialise state and bind UI handlers
+  load();
+  bindAddForm();
+  bindFilters();
+  bindBanner();
+  bindSpeech();
+  bindTTS();
+  // allow users to customise the accent colour via the colour picker
+  const accentInput = document.getElementById('accentColor');
+  if (accentInput) {
+    accentInput.addEventListener('input', (e) => {
+      state.accentColor = e.target.value;
+      save();
+      render();
+    });
+  }
+  // finally render the UI
+  render();
+})();
+// PWA SW registration + install button
+if('serviceWorker' in navigator){ window.addEventListener('load', ()=>{ navigator.serviceWorker.register('./service-worker.js').catch(()=>{}); }); }
+let deferredPrompt; const installBtn=document.createElement('button'); installBtn.textContent='⬇️ Install App'; installBtn.className='btn'; Object.assign(installBtn.style,{position:'fixed',right:'16px',bottom:'16px',zIndex:'9999',display:'none'}); document.body.appendChild(installBtn);
+window.addEventListener('beforeinstallprompt', e=>{ e.preventDefault(); deferredPrompt=e; installBtn.style.display='inline-flex'; });
+installBtn.addEventListener('click', async ()=>{ installBtn.style.display='none'; if(!deferredPrompt) return; deferredPrompt.prompt(); try{ await deferredPrompt.userChoice; }catch(_){} deferredPrompt=null; });
+</script>
+</body>
+</html>
